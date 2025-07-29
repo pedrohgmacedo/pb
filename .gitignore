@@ -1,0 +1,16 @@
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.out
+*.test
+*.prof
+*.mprof
+*.log
+*.syso
+
+# build specific
+build/
+release/
+build_*/
