@@ -25,10 +25,13 @@ import (
 )
 
 // Serve starts the HTTPS server.
-func Serve(ctx context.Context, port int, le string) error {
+func Serve(ctx context.Context, port int, le string, fallback bool) error {
 	// Check for clipboard support at the very beginning.
 	if ClipboardUnsupported {
 		log.Println("System clipboard not supported, using in-memory clipboard fallback.")
+	} else if fallback {
+		log.Println("Using in-memory clipboard due to flag.")
+		UseInMemoryClipboard()
 	}
 
 	home, err := os.UserHomeDir()

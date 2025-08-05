@@ -60,6 +60,10 @@ func init() {
 	}
 }
 
+func UseInMemoryClipboard() {
+	activeClipboard = &inMemoryClipboard{}
+}
+
 // CopyToClipboard writes the given text using the active clipboard implementation.
 func CopyToClipboard(text string) error {
 	if activeClipboard == nil {
