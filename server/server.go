@@ -55,6 +55,7 @@ func Serve(ctx context.Context, port int, le string, fallback bool) error {
 	mux.HandleFunc(util.RequestCopy, copyHandler)
 	mux.HandleFunc(util.RequestPaste, pasteHandler)
 	mux.HandleFunc(util.RequestOpen, openHandler)
+	mux.HandleFunc(util.RequestQuit, quitHandler)
 
 	addr := fmt.Sprintf("0.0.0.0:%d", port)
 	server := &http.Server{
@@ -166,6 +167,12 @@ func openHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	log.Println("Open request successfully handled")
+}
+
+func quitHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Shutting down server...")
+	w.WriteHeader(http.StatusOK)
+	os.Exit(0)
 }
 
 func loadAuthorizedKeys(path string) (map[string]ssh.PublicKey, error) {
