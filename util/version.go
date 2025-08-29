@@ -1,2 +1,2 @@
 package util
-const GitHead = "7dcf70d8bf049dff1da18a6071041576f47ac112"
+const GitHead = "6a05119fd52f3f37f04ddac9dd77917fc8287cbf"
