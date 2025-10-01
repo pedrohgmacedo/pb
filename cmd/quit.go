@@ -17,7 +17,6 @@ var quitCmd = &cobra.Command{
 		if err == nil {
 			return err
 		}
-		fmt.Println("Server acknowledged exit command")
 		return nil
 	},
 }
