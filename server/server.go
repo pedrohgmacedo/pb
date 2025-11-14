@@ -27,7 +27,7 @@ import (
 // Serve starts the HTTPS server.
 func Serve(ctx context.Context, port int, le string, fallback bool) error {
 	// Check for clipboard support at the very beginning.
-	if ClipboardUnsupported {
+	if clipboardInitError != nil {
 		log.Println("System clipboard not supported, using in-memory clipboard fallback.")
 	} else if fallback {
 		log.Println("Using in-memory clipboard due to flag.")
@@ -127,7 +127,7 @@ func copyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := CopyToClipboard(string(body)); err != nil {
+	if err := CopyToClipboard(body); err != nil {
 		http.Error(w, "Failed to write to clipboard", http.StatusInternalServerError)
 		return
 	}
@@ -143,7 +143,7 @@ func pasteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := w.Write([]byte(content)); err != nil {
+	if _, err := w.Write(content); err != nil {
 		log.Printf("Failed to write response: %v", err)
 	} else {
 		log.Println("Paste request successfully handled")
