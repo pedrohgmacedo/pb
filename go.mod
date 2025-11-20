@@ -8,7 +8,7 @@ require (
 	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/spf13/cobra v1.9.1
 	golang.design/x/clipboard v0.7.1
-	golang.org/x/crypto v0.40.0
+	golang.org/x/crypto v0.45.0
 )
 
 require (
@@ -21,7 +21,7 @@ require (
 	golang.org/x/mobile v0.0.0-20250606033058-a2a15c67f36f // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
 	honnef.co/go/tools v0.6.1 // indirect
 )
