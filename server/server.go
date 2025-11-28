@@ -20,17 +20,24 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"pb/clipboard"
 	"pb/util"
 	"time"
 )
 
 // Serve starts the HTTPS server.
 func Serve(ctx context.Context, port int, le string, fallback bool, useCliTool bool) error {
+	// Initialize clipboard with logging enabled (server logs clipboard operations)
+	clipboard.EnableLogging()
+	if err := clipboard.Init(); err != nil {
+		return fmt.Errorf("failed to initialize clipboard: %w", err)
+	}
+
 	// Handle clipboard flag priority: --fallback overrides --use-cli-tool
 	if fallback {
-		UseInMemoryClipboard()
+		clipboard.UseInMemoryClipboard()
 	} else if useCliTool {
-		if err := UseCliClipboard(); err != nil {
+		if err := clipboard.UseCliClipboard(); err != nil {
 			return fmt.Errorf("--use-cli-tool flag set but CLI tools not available: %w", err)
 		}
 	}
@@ -128,7 +135,7 @@ func copyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := CopyToClipboard(body); err != nil {
+	if err := clipboard.Copy(body); err != nil {
 		http.Error(w, "Failed to write to clipboard", http.StatusInternalServerError)
 		return
 	}
@@ -138,7 +145,7 @@ func copyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pasteHandler(w http.ResponseWriter, r *http.Request) {
-	content, err := PasteFromClipboard()
+	content, err := clipboard.Paste()
 	if err != nil {
 		http.Error(w, "Failed to read from clipboard", http.StatusInternalServerError)
 		return
