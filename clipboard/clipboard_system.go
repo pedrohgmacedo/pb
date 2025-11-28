@@ -5,7 +5,6 @@ package clipboard
 import (
 	"context"
 	xclip "golang.design/x/clipboard"
-	"pb/util"
 )
 
 // systemClipboard interacts with the actual system's clipboard using golang.design.
@@ -25,11 +24,11 @@ func (c *systemClipboard) Paste() ([]byte, error) {
 type cliClipboard struct{}
 
 func (c *cliClipboard) Copy(data []byte) error {
-	return util.WriteClipboardCLI(data)
+	return WriteClipboardCLI(data)
 }
 
 func (c *cliClipboard) Paste() ([]byte, error) {
-	return util.ReadClipboardCLI()
+	return ReadClipboardCLI()
 }
 
 // initPlatformClipboard tries golang.design first, then CLI tools, then falls back to in-memory.
@@ -46,7 +45,7 @@ func initPlatformClipboard(fallback *inMemoryClipboard) error {
 	logf("System clipboard (golang.design) failed: %v", err)
 
 	// Fall back to CLI tools if available
-	if util.CLIClipboardAvailable {
+	if CLIClipboardAvailable {
 		state.active = &cliClipboard{}
 		state.usingFallback = false
 		logf("Falling back to CLI clipboard tools")

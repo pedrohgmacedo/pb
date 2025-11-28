@@ -4,24 +4,23 @@ package clipboard
 
 import (
 	"context"
-	"pb/util"
 )
 
 // cliClipboard interacts with the system's clipboard using CLI tools.
 type cliClipboard struct{}
 
 func (c *cliClipboard) Copy(data []byte) error {
-	return util.WriteClipboardCLI(data)
+	return WriteClipboardCLI(data)
 }
 
 func (c *cliClipboard) Paste() ([]byte, error) {
-	return util.ReadClipboardCLI()
+	return ReadClipboardCLI()
 }
 
 // initPlatformClipboard tries CLI tools first, then falls back to in-memory.
 func initPlatformClipboard(fallback *inMemoryClipboard) error {
 	// Try CLI tools
-	if util.CLIClipboardAvailable {
+	if CLIClipboardAvailable {
 		state.active = &cliClipboard{}
 		state.usingFallback = false
 		logf("Using CLI clipboard tools")
@@ -50,7 +49,7 @@ func isClipboardResponsive() bool {
 	done := make(chan bool, 1)
 	go func() {
 		// Quick test read
-		_, _ = util.ReadClipboardCLI()
+		_, _ = ReadClipboardCLI()
 		done <- true
 	}()
 
