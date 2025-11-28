@@ -25,10 +25,14 @@ import (
 )
 
 // Serve starts the HTTPS server.
-func Serve(ctx context.Context, port int, le string, fallback bool) error {
-	// If --fallback flag is set, use in-memory clipboard from the start
+func Serve(ctx context.Context, port int, le string, fallback bool, useCliTool bool) error {
+	// Handle clipboard flag priority: --fallback overrides --use-cli-tool
 	if fallback {
 		UseInMemoryClipboard()
+	} else if useCliTool {
+		if err := UseCliClipboard(); err != nil {
+			return fmt.Errorf("--use-cli-tool flag set but CLI tools not available: %w", err)
+		}
 	}
 
 	home, err := os.UserHomeDir()

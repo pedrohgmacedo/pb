@@ -3,34 +3,18 @@ package server
 import (
 	"context"
 	"fmt"
-	"golang.design/x/clipboard"
 	"log"
+	"pb/util"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 )
 
-// clipboardInitError stores any error that occurred during clipboard initialization
-var clipboardInitError error
-
 // clipboarder defines the interface for clipboard operations.
 type clipboarder interface {
 	Copy(data []byte) error
 	Paste() ([]byte, error)
-}
-
-// systemClipboard interacts with the actual system's clipboard.
-type systemClipboard struct{}
-
-func (c *systemClipboard) Copy(data []byte) error {
-	clipboard.Write(clipboard.FmtText, data)
-	return nil
-}
-
-func (c *systemClipboard) Paste() ([]byte, error) {
-	data := clipboard.Read(clipboard.FmtText)
-	return data, nil
 }
 
 // inMemoryClipboard is used as a fallback when the system clipboard is not available.
@@ -52,7 +36,7 @@ func (c *inMemoryClipboard) Paste() ([]byte, error) {
 	return c.data, nil
 }
 
-// clipboardState tracks whether we're using system or fallback clipboard
+// clipboardState tracks which clipboard implementation is active
 type clipboardState struct {
 	mu              sync.RWMutex
 	active          clipboarder
@@ -64,29 +48,9 @@ type clipboardState struct {
 var state *clipboardState
 
 const (
-	clipboardTimeout      = 2 * time.Second
-	healthCheckInterval   = 5 * time.Second
+	clipboardTimeout    = 2 * time.Second
+	healthCheckInterval = 5 * time.Second
 )
-
-// init runs once when the package is loaded. It initializes the clipboard and sets
-// the activeClipboard to the correct implementation based on availability.
-func init() {
-	fallback := &inMemoryClipboard{}
-	state = &clipboardState{
-		fallback:        fallback,
-		healthCheckDone: make(chan struct{}),
-	}
-
-	clipboardInitError = clipboard.Init()
-	if clipboardInitError != nil {
-		state.active = fallback
-		state.usingFallback = true
-		log.Println("System clipboard not available at startup, using in-memory clipboard")
-	} else {
-		state.active = &systemClipboard{}
-		state.usingFallback = false
-	}
-}
 
 func UseInMemoryClipboard() {
 	state.mu.Lock()
@@ -94,6 +58,20 @@ func UseInMemoryClipboard() {
 	state.active = state.fallback
 	state.usingFallback = true
 	log.Println("Switched to in-memory clipboard (manual flag)")
+}
+
+// UseCliClipboard switches to CLI-based clipboard if available
+func UseCliClipboard() error {
+	if !util.CLIClipboardAvailable {
+		return fmt.Errorf("CLI clipboard tools not available")
+	}
+
+	state.mu.Lock()
+	defer state.mu.Unlock()
+	state.active = &cliClipboard{}
+	state.usingFallback = false
+	log.Println("Switched to CLI clipboard tools (manual flag)")
+	return nil
 }
 
 // getActiveClipboard returns the currently active clipboard implementation
@@ -127,7 +105,7 @@ func switchToFallback() {
 // switchToSystem switches back to the system clipboard and stops health check
 func switchToSystem() {
 	state.mu.Lock()
-	state.active = &systemClipboard{}
+	state.active = getPrimaryClipboard()
 	state.usingFallback = false
 	state.mu.Unlock()
 
@@ -209,7 +187,7 @@ func PasteFromClipboard() ([]byte, error) {
 	}
 }
 
-// startHealthCheck polls the system clipboard every 5s to detect recovery
+// startHealthCheck polls the clipboard every 5s to detect recovery
 func startHealthCheck() {
 	ticker := time.NewTicker(healthCheckInterval)
 	defer ticker.Stop()
@@ -219,31 +197,11 @@ func startHealthCheck() {
 		case <-state.healthCheckDone:
 			return
 		case <-ticker.C:
-			if isSystemClipboardResponsive() {
+			if isClipboardResponsive() {
 				switchToSystem()
 				return
 			}
 		}
-	}
-}
-
-// isSystemClipboardResponsive tests if the system clipboard is accessible
-func isSystemClipboardResponsive() bool {
-	ctx, cancel := context.WithTimeout(context.Background(), clipboardTimeout)
-	defer cancel()
-
-	done := make(chan bool, 1)
-	go func() {
-		// Quick test read
-		_ = clipboard.Read(clipboard.FmtText)
-		done <- true
-	}()
-
-	select {
-	case <-done:
-		return true
-	case <-ctx.Done():
-		return false
 	}
 }
 
@@ -262,3 +220,5 @@ func ConvertLE(text, op string) string {
 		return text
 	}
 }
+
+
