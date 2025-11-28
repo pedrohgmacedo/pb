@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
+	"pb/clipboard"
 	"pb/util"
 	"strconv"
 )
@@ -14,6 +15,7 @@ var (
 	serverAddress string
 	port          int
 	keyPath       string
+	enableLogging bool
 )
 
 var rootCmd = &cobra.Command{
@@ -23,6 +25,11 @@ var rootCmd = &cobra.Command{
 	Long:    `A simple tool for sharing your clipboard over the network, using HTTPS and SSH key authentication.`,
 	// This function runs before any subcommand executes.
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// Enable logging if --log flag is set
+		if enableLogging {
+			clipboard.EnableLogging()
+		}
+
 		// This logic only applies to commands that have these flags.
 		// The server command, for example, doesn't have a "server" flag.
 		if cmd.Flags().Lookup("server") != nil {
@@ -69,4 +76,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&serverAddress, "server", "s", "localhost", fmt.Sprintf("Server address (or %s)", util.EnvVarServer))
 	rootCmd.PersistentFlags().IntVarP(&port, "port", "p", util.DefaultPort, fmt.Sprintf("Server port (or %s)", util.EnvVarPort))
 	rootCmd.PersistentFlags().StringVar(&keyPath, "key", "", fmt.Sprintf("Path to private key (or %s)", util.EnvVarKey))
+	rootCmd.PersistentFlags().BoolVar(&enableLogging, "log", false, "enable logging output for debugging.")
 }
