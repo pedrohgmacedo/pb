@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"pb/clipboard"
 	"pb/util"
 )
 
@@ -13,9 +14,20 @@ var pasteCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		url := fmt.Sprintf("https://%s:%d%s", serverAddress, port, util.RequestPaste)
 		pastedText, err := doHTTPSRequest("GET", url, "")
+		
+		// If server fails, try local clipboard
 		if err != nil {
-			return err
+			if err := clipboard.Init(); err != nil {
+				return fmt.Errorf("server unreachable and clipboard unavailable: %w", err)
+			}
+			data, err := clipboard.Paste()
+			if err != nil {
+				return fmt.Errorf("server unreachable and failed to read from local clipboard: %w", err)
+			}
+			fmt.Print(string(data))
+			return nil
 		}
+		
 		fmt.Print(pastedText)
 		return nil
 	},

@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"io"
 	"os"
+	"pb/clipboard"
 	"pb/util"
 )
 
@@ -38,7 +39,17 @@ var copyCmd = &cobra.Command{
 
 		url := fmt.Sprintf("https://%s:%d%s", serverAddress, port, util.RequestCopy)
 		_, err := doHTTPSRequest("POST", url, string(dataToCopy))
-		return err
+		
+		// If server fails, try local clipboard
+		if err != nil {
+			if err := clipboard.Init(); err != nil {
+				return fmt.Errorf("server unreachable and clipboard unavailable: %w", err)
+			}
+			if err := clipboard.Copy(dataToCopy); err != nil {
+				return fmt.Errorf("server unreachable and failed to write to local clipboard: %w", err)
+			}
+		}
+		return nil
 	},
 }
 
