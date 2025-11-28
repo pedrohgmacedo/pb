@@ -7,12 +7,12 @@ import (
 )
 
 const (
-	xsel               = "xsel"
-	xclip              = "xclip"
-	wlcopy             = "wl-copy"
-	wlpaste            = "wl-paste"
-	termuxClipboardGet = "termux-clipboard-get"
-	termuxClipboardSet = "termux-clipboard-set"
+	cliXsel               = "xsel"
+	cliXclip              = "xclip"
+	cliWlcopy             = "wl-copy"
+	cliWlpaste            = "wl-paste"
+	cliTermuxClipboardGet = "termux-clipboard-get"
+	cliTermuxClipboardSet = "termux-clipboard-set"
 )
 
 var (
@@ -22,17 +22,17 @@ var (
 	pasteCmdArgs []string
 	copyCmdArgs  []string
 
-	xselPasteArgs = []string{xsel, "--output", "--clipboard"}
-	xselCopyArgs  = []string{xsel, "--input", "--clipboard"}
+	xselPasteArgs = []string{cliXsel, "--output", "--clipboard"}
+	xselCopyArgs  = []string{cliXsel, "--input", "--clipboard"}
 
-	xclipPasteArgs = []string{xclip, "-out", "-selection", "clipboard"}
-	xclipCopyArgs  = []string{xclip, "-in", "-selection", "clipboard"}
+	xclipPasteArgs = []string{cliXclip, "-out", "-selection", "clipboard"}
+	xclipCopyArgs  = []string{cliXclip, "-in", "-selection", "clipboard"}
 
-	wlpasteArgs = []string{wlpaste, "--no-newline"}
-	wlcopyArgs  = []string{wlcopy}
+	wlpasteArgs = []string{cliWlpaste, "--no-newline"}
+	wlcopyArgs  = []string{cliWlcopy}
 
-	termuxPasteArgs = []string{termuxClipboardGet}
-	termuxCopyArgs  = []string{termuxClipboardSet}
+	termuxPasteArgs = []string{cliTermuxClipboardGet}
+	termuxCopyArgs  = []string{cliTermuxClipboardSet}
 
 	clipboardUnavailableErr = errors.New("no clipboard utilities available: install xsel, xclip, wl-clipboard, or enable Termux:API")
 )
@@ -41,7 +41,7 @@ var (
 func initCLIClipboard() {
 	// Try Wayland first
 	if os.Getenv("WAYLAND_DISPLAY") != "" {
-		if hasCommand(wlcopy) && hasCommand(wlpaste) {
+		if hasCommand(cliWlcopy) && hasCommand(cliWlpaste) {
 			pasteCmdArgs = wlpasteArgs
 			copyCmdArgs = wlcopyArgs
 			CLIClipboardAvailable = true
@@ -50,7 +50,7 @@ func initCLIClipboard() {
 	}
 
 	// Try xclip
-	if hasCommand(xclip) {
+	if hasCommand(cliXclip) {
 		pasteCmdArgs = xclipPasteArgs
 		copyCmdArgs = xclipCopyArgs
 		CLIClipboardAvailable = true
@@ -58,7 +58,7 @@ func initCLIClipboard() {
 	}
 
 	// Try xsel
-	if hasCommand(xsel) {
+	if hasCommand(cliXsel) {
 		pasteCmdArgs = xselPasteArgs
 		copyCmdArgs = xselCopyArgs
 		CLIClipboardAvailable = true
@@ -66,7 +66,7 @@ func initCLIClipboard() {
 	}
 
 	// Try Termux
-	if hasCommand(termuxClipboardSet) && hasCommand(termuxClipboardGet) {
+	if hasCommand(cliTermuxClipboardSet) && hasCommand(cliTermuxClipboardGet) {
 		pasteCmdArgs = termuxPasteArgs
 		copyCmdArgs = termuxCopyArgs
 		CLIClipboardAvailable = true
