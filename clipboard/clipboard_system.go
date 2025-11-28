@@ -4,7 +4,7 @@ package clipboard
 
 import (
 	"context"
-	"golang.design/x/clipboard"
+	xclip "golang.design/x/clipboard"
 	"pb/util"
 )
 
@@ -12,12 +12,12 @@ import (
 type systemClipboard struct{}
 
 func (c *systemClipboard) Copy(data []byte) error {
-	clipboard.Write(clipboard.FmtText, data)
+	xclip.Write(xclip.FmtText, data)
 	return nil
 }
 
 func (c *systemClipboard) Paste() ([]byte, error) {
-	data := clipboard.Read(clipboard.FmtText)
+	data := xclip.Read(xclip.FmtText)
 	return data, nil
 }
 
@@ -35,7 +35,7 @@ func (c *cliClipboard) Paste() ([]byte, error) {
 // initPlatformClipboard tries golang.design first, then CLI tools, then falls back to in-memory.
 func initPlatformClipboard(fallback *inMemoryClipboard) error {
 	// Try golang.design first
-	err := clipboard.Init()
+	err := xclip.Init()
 	if err == nil {
 		state.active = &systemClipboard{}
 		state.usingFallback = false
@@ -75,7 +75,7 @@ func isClipboardResponsive() bool {
 	done := make(chan bool, 1)
 	go func() {
 		// Quick test read
-		_ = clipboard.Read(clipboard.FmtText)
+		_ = xclip.Read(xclip.FmtText)
 		done <- true
 	}()
 
