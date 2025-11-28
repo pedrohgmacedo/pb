@@ -265,8 +265,4 @@ func ConvertLE(text, op string) string {
 	}
 }
 
-// Platform-specific functions to be implemented in clipboard_system.go or clipboard_android.go
-func initPlatformClipboard(fallback *inMemoryClipboard) error
-func getPrimaryClipboard() clipboarder
-func getCLIClipboard() clipboarder
-func isClipboardResponsive() bool
+
